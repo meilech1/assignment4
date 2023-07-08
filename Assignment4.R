@@ -69,6 +69,46 @@ fixed.country <- shapes.cleaned %>%
     .default = country)) %>%
   filter(!(trimws(country) == "" | is.na(country)))
 
+# Preview of the new fixed.country tibble is printed to console below (first 6 observations).
+# To see all the data please look at 'fixed.country' in the Environment tab.
+print(head(fixed.country))
+
+# Convert Datetime and Date_posted columns into appropriate formats
+#' Below we use strptime() to conver character string into date-time objects. 
+#' The format for datetime and date_posted was identifying by looking at the nature of the data.
+#' These mutations have been assigned to a new tibble called 'fixed.time'
+fixed.time <- fixed.country %>%
+  mutate(datetime = strptime(datetime, "%Y-%m-%d %H:%M")) %>%
+  mutate(date_posted = strptime(date_posted, "%d-%m-%Y"))
+
+# Preview of the new fixed.time tibble is printed to console below (first 6 observations).
+# To see all the data please look at 'fixed.time' in the Environment tab.
+print(head(fixed.time))
+
+#  Creating a filter to identify possible hoax reports. Create a new boolean column "is_hoax".
+#' For this task some assumptions were made. First, the 'comments' variable in our UFO data
+#' contains some observations where NUFORC officials add a HOAX?? or HOAX tag. Both (with
+#' question marks and without were classified as possible hoax reports). There are some
+#' other observations where NUFORC comments include plausible alternatives such as "twinkling stars"
+#' or "possibly venus". However, if there was no HOAX or HOAX?? tag, this was not classified as 
+#' a possible hoax report. 
+#' In the function below, a new tibble 'hoax.data' is created that takes in the data from
+#' 'fixed.country' tibble. A new column (variable) 'is_hoax" is created. The value for each observation
+#' in this 'is_hoax' column is either TRUE or FALSE based on the output from the grepl() function.
+#' This function returns TRUE if "HOAX" appears anywhere in the comment string for an observation.
+#' toupper() was used for defensive programming / better accuracy. 
+hoax.data <- fixed.country %>%
+  mutate(is_hoax = case_when(
+    grepl("HOAX", toupper(comments), fixed = TRUE) ~ TRUE,
+    .default = FALSE
+  ))
+
+# Create a table reporting the percentage of hoax sightings per country.
+
+
+
+
+
 
 
 
