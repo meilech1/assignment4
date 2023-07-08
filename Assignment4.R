@@ -41,30 +41,36 @@ print(head(shapes.cleaned %>% filter(shape == "unknown")))
 #' column, extract it and put it in country column respectively.
 
 #' Below:
-#' 1) Creating a new tibble 'missing.country' that consists of all the observations where country is NA
-#' or an empty string (whitepsace trimmed). 
-#' 2) The second pipe is the logic for extracting country names for observations where a country name 
-#' is present in the city column. We use the case_when function to identify city values where the 
-#' first regex pattern is matched (in this case, contains parentheses). This is because iff the city 
+#' 1) Creating a new tibble 'fixed.country' that takes in the 'shapes.cleaned' tibble.
+#' 2) We then use the mutate function. First we use case_when() to find observations 
+#' where country is equal to the empty string or NA (with whitespace trimmed for more accuracy) 
+#' AND where city values match the first regex pattern. This first reges pattern is to check if
+#' the string contains parentheses. Essentially, this allows us to identify observations where
+#' country is missing, but the respective city value has parentheses. This is because if the city 
 #' contains parentheses we assume this contains the country name. This isn't the case for all
 #' city values that have parentheses, but for the majority so we will make this generalization even though
 #' it is not perfect. 
-#' 3) Thus, if the first regex is matched, we then extract the string that is inside of
-#' the parentheses using str_extract. The second regex allows us to get the values inside of the last
-#' set of parentheses in the city string. We created this regex to only get the string inside of the
-#' last set of parentheses as some city strings have multiple parentheses. For these, the last one
-#' seemed to include the country name more frequently than the earlier sets of parentheses. As such,
-#' this will give us better accuracy. 
+#' 3) For these cases, we then extract the string that is inside of the parentheses using str_extract. 
+#' The second regex allows us to get the values inside of the last set of parentheses in the city string. 
+#' We created this regex to only get the string inside of the last set of parentheses as some city strings 
+#' have multiple parentheses. For these, the last one seemed to include the country name more frequently 
+#' than the earlier sets of parentheses. As such, this will give us better accuracy. 
+#' 4) The steps 2-3 above allow us to populate some of the missing country fields with better data.
+#' 5) If the conditions above were not met the .default = country line just keeps the country value
+#' that was in place originally (e.g. for data where country data was good we preserve it)
+#' 6) Lastly, we use filter() to now filter out any observations where the country value is NA or the
+#' empty whitespace (after trimming, for better accuracy). This is because we want these incomplete
+#' observations removed from our 'fixed.country' tibble.
 
-missing.country <- shapes.cleaned %>%
-  filter(trimws(country) == "" | is.na(country)) %>%
+fixed.country <- shapes.cleaned %>%
   mutate(country = case_when(
-    grepl("\\(.*\\)", city) ~ str_extract(city, "(?<=\\()([^()]*?)(?=\\)[^()]*$)"),
-    .default = NA
-  ))
+    (trimws(country) == "" | is.na(country) &
+    grepl("\\(.*\\)", city)) ~ str_extract(city, "(?<=\\()([^()]*?)(?=\\)[^()]*$)"),
+    .default = country)) %>%
+  filter(!(trimws(country) == "" | is.na(country)))
 
 
-           
+
 
 
 
