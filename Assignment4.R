@@ -52,9 +52,11 @@ print(head(shapes.cleaned %>% filter(shape == "unknown")))
 #' it is not perfect. 
 #' 3) For these cases, we then extract the string that is inside of the parentheses using str_extract. 
 #' The second regex allows us to get the values inside of the last set of parentheses in the city string. 
-#' We created this regex to only get the string inside of the last set of parentheses as some city strings 
+#' We created this regex to only get the letter strings inside of the last set of parentheses as some city strings 
 #' have multiple parentheses. For these, the last one seemed to include the country name more frequently 
 #' than the earlier sets of parentheses. As such, this will give us better accuracy. 
+#' Note: thank you stackoverflow :).  Note: The decision was made to only get letter strings using [a-z]*?
+#' as there are some parentheses that have non-letter text, which is definitely not a valid country.
 #' 4) The steps 2-3 above allow us to populate some of the missing country fields with better data.
 #' 5) If the conditions above were not met the .default = country line just keeps the country value
 #' that was in place originally (e.g. for data where country data was good we preserve it)
@@ -65,7 +67,7 @@ print(head(shapes.cleaned %>% filter(shape == "unknown")))
 fixed.country <- shapes.cleaned %>%
   mutate(country = case_when(
     (trimws(country) == "" | is.na(country) &
-    grepl("\\(.*\\)", city)) ~ str_extract(city, "(?<=\\()([^()]*?)(?=\\)[^()]*$)"),
+    grepl("\\(.*\\)", city)) ~ str_extract(city, "(?<=\\()([a-z]*?)(?=\\)[^()]*$)"),
     .default = country)) %>%
   filter(!(trimws(country) == "" | is.na(country)))
 
@@ -103,8 +105,26 @@ hoax.data <- fixed.country %>%
     .default = FALSE
   ))
 
-# Create a table reporting the percentage of hoax sightings per country.
+# Preview of the new hoax.data tibble is printed to console below (first 6 observations).
+# To see all the data please look at 'hoax.data' in the Environment tab.
+print(head(hoax.data))
 
+# Create a table reporting the percentage of hoax sightings per country.
+#' To achieve this, we have created a new tibble 'hoax.country' which takes in the data from 'hoax.data'.
+#' First we group by the countries. Then we create a new variable 'Hoax.Percentage'.
+#' This is equal to the sum of hoax sightings in a country divided by the total sightings in a country
+#' times 100 (to get the percentage value). Lastly, we arrange the hoax.country in descending
+#' order by the Hoax.Percentage This shows the highest ratio countries first.
+
+hoax.country <- hoax.data %>%
+  group_by(country) %>%
+  summarise(Hoax.Percentage = ((sum(is_hoax, na.rm=T)/n()) * 100)) %>%
+  arrange(desc(Hoax.Percentage))
+
+# Preview of the table showing percentage of hoax sightings per country.
+# This is printed to console below (first 6 observations).
+# To see all the data please look at 'hoax.country' in the Environment tab.
+print(head(hoax.country))
 
 
 
