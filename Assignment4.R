@@ -1,6 +1,7 @@
 # Assignment 4 - Aliens Are Coming!!
 
 #* User information & loading packages / file info will go here. TBD
+#* Assumptions made e.g. rounding up time, creating new tibbles.
 #*
 
 # Start of the Code
@@ -99,7 +100,7 @@ print(head(fixed.time))
 #' in this 'is_hoax' column is either TRUE or FALSE based on the output from the grepl() function.
 #' This function returns TRUE if "HOAX" appears anywhere in the comment string for an observation.
 #' toupper() was used for defensive programming / better accuracy. 
-hoax.data <- fixed.country %>%
+hoax.data <- fixed.time %>%
   mutate(is_hoax = case_when(
     grepl("HOAX", toupper(comments), fixed = TRUE) ~ TRUE,
     .default = FALSE
@@ -126,11 +127,96 @@ hoax.country <- hoax.data %>%
 # To see all the data please look at 'hoax.country' in the Environment tab.
 print(head(hoax.country))
 
+# Add another column to the dataset (report_delay) and populate with the time difference 
+# in days, between the date of the sighting and the date it was reported.
+
+#' Below we are creating a new tibble called 'time.diff'. This takes in 'hoax.data' which is
+#' the un-summarized tibble from before (we don't want to use the grouped country table hoax.country as
+#' we want the time differences in days for each observation).
+#' We create a new variable (column) 'report_delay' which calcualtes the difference of the date_posted
+#' and datetime (of sighting) for each observation in days (as the unit).
+#' ASSUMPTION MADE: the difftime() gave days with decimal values. However our unit is in days so we
+#' decided to round the result. The assumption made was that days were rounded up to the nearest full day.
+#' Justification: Suppose a sighting was reported on June 11 at 11:30 PM. If it was reported on June 12th,
+#' the difftime() result would be < 1. However, in terms of the calendar days the two events did not happen
+#' on the same day, hence we round up using the ceiling() function.
+time.diff <- hoax.data %>% 
+  mutate(report_delay = 
+           ceiling(difftime(date_posted, datetime, units = "days")))
+
+# Preview of the new time.diff tibble is printed to console below (first 6 observations).
+# To see all the data please look at 'time.diff' in the Environment tab.
+print(head(time.diff))
+
+
+# Remove the rows where the sighting was reported before it happened.
+#' The instances were a sighting was reported before it happened is the instances
+#' where date_posted occurs before dattime. From the 'time.diff' calculations above,
+#' this would mean that the report_delay is < 0 days. As such, we will remove the rows
+#' where report_delay is less than 0. The new tibble is 'real.times'. We use the
+#' filter() function to keep the items where report_delay is NOT less than 0.
+
+real.times <- time.diff %>%
+  filter(!(report_delay < 0))
+
+# Preview of the new real.times tibble is printed to console below (first 6 observations).
+# To see all the data please look at 'real.times' in the Environment tab.
+print(head(real.times))
+
+# Create a table reporting the average report_delay per country.
+
+#' To achieve this, we create a new tibble called 'report.delay.country' which takes in
+#' the data from 'real.times'. We then group the observations by country using group_by().
+#' For each country we then summarise the 'Average.Report.Delay' which is the mean of the
+#' report_delay for each observation. Lastly, we arrange the table to show the average report
+#' delay for each country in descending order. 
+report.delay.country <- real.times %>%
+  group_by(country) %>%
+  summarise(Average.Report.Delay = mean(report_delay)) %>%
+  arrange(desc(Average.Report.Delay))
+
+
+# Data Quality of: duration seconds column
+
+# Doing some basic analysis of the duration seconds data below. This will show us
+# the minimum value, the maximum value, and the number of NA values. 
+cat("Minimum Value for Duration Seconds:", min(real.times$duration.seconds))
+cat("Maximum Value for Duration Seconds:", max(real.times$duration.seconds))
+cat("Number of NA values:", sum(is.na(real.times$duration.seconds)))
+
+#' From the minimum and maximum values we an see that the range of our data is very large.
+#' This will give us problems when trying to make a histogram... But what kind of problems?
+summary(real.times$duration.seconds)
+#' The summary function above shows us that we have a median of 180 seconds and an interquartile
+#' range of around 555 seconds. Additionally our 75th percentile is 600 seconds, such that 75% of
+#' the observed data falls below this value. However, our maximum value is huge. So this shows us
+#' we have some extreme values on the right side of our data distribution. These seem to be skewing
+#' our distribution to the right, which is also shown as the mean is substantially larger than the mean.
+#' We could remove these extreme observations, such that observations with a duration in seconds
+#' greater than some threshold are removed. However, we cannot arbitrarily determine what a reasonable
+#' threshold is. For all we know, the  high duration in second observations could be legitimate data points.
+#' As such, we are not going to change or edit any individual observation and compromise the integrity
+#' of our data. Rather, we will apply a logarithm transformation to the duration second variable to counteract
+#' this positive skew. This transformation will allow us to keep the relative relationships between our
+#' observations in place, but also reduce the extreme range between our data points there are preventing us
+#' from making meaningful insights. 
+
+# As such, we will create a new variable: log.duration.seconds whichs applies the log10 transformation
+# to the duration.seconds variable. We will store this in tibble 'final.data'. However, as shown below
+# we have some values where log10() would give us a negative value. These are observations where the
+# duration.seconds is < 1. As such, we will first apply a ceiling function to these observations to
+# prevent having negative log10 numbers. This is the only manipulation we will do to our raw data.
+
+final.data <- real.times %>%
+  mutate(duration.seconds = case_when(
+    duration.seconds < 1 ~ 1,
+    .default = duration.seconds
+  )) %>%
+  mutate(log.duration.seconds = log10(duration.seconds))
+  
 
 
 
-
-
-
-
+# Histogram of Duration Seconds Variable
+hist(final.data$log.duration.seconds)
 
