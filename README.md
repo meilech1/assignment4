@@ -8,23 +8,14 @@ To read this script, you can click "Source" at the top right and go through
 each block of code. For each section a new object has been created in the environment
 so you can refer to the appropriate object in the "Environment" section. 
 
-                _____
-             ,-"     "-.
-            / o       o \
-           /   \     /   \
-          /     )-"-(     \
-         /     ( 6 6 )     \
-        /       \ " /       \
-       /         )=(         \
-      /   o   .--"-"--.   o   \
-     /    I  /  -   -  \  I    \
- .--(    (_}y/\       /\y{_)    )--.
-(    ".___l\/__\_____/__\/l___,"    )
- \                                 /
-  "-._      o O o O o O o      _,-"
-      `--Y--.___________.--Y--'
-         |==.___________.==| hjw
-         `==.___________.==' `97
+
+
+                       .-.
+        .-""`""-.    |(@ @)
+     _/`oOoOoOoOo`\_ \ \-/
+    '.-=-=-=-=-=-=-.' \/ \
+jgs   `-=.=-.-=.=-'    \ /\
+         ^  ^  ^       _H_ \
 
 
 
