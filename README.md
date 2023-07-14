@@ -9,17 +9,3 @@ each block of code. For each section a new object has been created in the enviro
 so you can refer to the appropriate object in the "Environment" section. 
 
 
-
-                       .-.
-        .-""`""-.    |(@ @)
-     _/`oOoOoOoOo`\_ \ \-/
-    '.-=-=-=-=-=-=-.' \/ \
-jgs   `-=.=-.-=.=-'    \ /\
-         ^  ^  ^       _H_ \
-
-
-
-
-
-
-
