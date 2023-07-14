@@ -142,7 +142,6 @@ print(head(fixed.time))
 #' format. 
 hoax.data <- fixed.time %>%
   mutate(is_hoax = case_when(
-    #grepl("HOAX", comments, fixed = TRUE) ~ TRUE,
     grepl("\\({2}.{0,}HOAX\\?*.{0,}\\){0,2}", toupper(comments), fixed = F) ~ TRUE,
     .default = FALSE
   ))
